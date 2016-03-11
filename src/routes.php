@@ -40,14 +40,14 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
         //$sth->bindParam(':code', $code, PDO::PARAM_STR);
 
         $sth->execute();
-        $target = $sth->fetch(PDO::FETCH_ASSOC);
+        $hits = $sth->fetchAll();
 
-        if ($target) {
+        if ($hits) {
             //$ipAddress = $request->getAttribute('ip_address');
             //$referrer = $request->getHeaderLine('HTTP_REFERER');
 
             $response = $response->withStatus(200);
-            $body->write(json_encode($target));
+            $body->write(json_encode($hits));
 
         } else {
             $response = $response->withStatus(200);
