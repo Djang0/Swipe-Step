@@ -44,7 +44,7 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
         }
 
         $sth->execute();
-        $hits = $sth->fetchAll();
+        $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
 
         if ($hits) {
             $response = $response->withStatus(200);
