@@ -31,27 +31,27 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     try {
+        $id = $response->getHeaderLine('X-Owner');
         $target_id = $args['target_id'];
-                                //header('Location: http://www.new-website.com/', true, 301);
-                                //exit();
-
         $db = getDB();
-        $sth = $db->prepare('select * from hits');
-        //$sth->bindParam(':code', $code, PDO::PARAM_STR);
+        if ($target_id > 0) {
+            $sth = $db->prepare('SELECT * FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
+            $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+            $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+        } else {
+            $sth = $db->prepare('SELECT * FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id');
+            $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+        }
 
         $sth->execute();
         $hits = $sth->fetchAll();
 
         if ($hits) {
-            //$ipAddress = $request->getAttribute('ip_address');
-            //$referrer = $request->getHeaderLine('HTTP_REFERER');
-
             $response = $response->withStatus(200);
             $body->write('{"hits":'.json_encode($hits).'}');
-
         } else {
             $response = $response->withStatus(200);
-            $body->write('{"hits":{"msg":"none"}}');
+            $body->write('{"hits":'.json_encode($hits).'}');
         }
         $db = null;
     } catch (PDOException $e) {
