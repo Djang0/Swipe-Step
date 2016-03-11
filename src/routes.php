@@ -47,7 +47,7 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
             //$referrer = $request->getHeaderLine('HTTP_REFERER');
 
             $response = $response->withStatus(200);
-            $body->write(json_encode($hits));
+            $body->write('{"hits":'.json_encode($hits).'}');
 
         } else {
             $response = $response->withStatus(200);
