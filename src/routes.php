@@ -40,7 +40,7 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
         //$sth->bindParam(':code', $code, PDO::PARAM_STR);
 
         $sth->execute();
-        $target = $sth->fetch(PDO::FETCH_OBJ);
+        $target = $sth->fetch(PDO::FETCH_ASSOC);
 
         if ($target) {
             //$ipAddress = $request->getAttribute('ip_address');
@@ -48,6 +48,7 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
 
             $response = $response->withStatus(200);
             $body->write(json_encode($target));
+
         } else {
             $response = $response->withStatus(200);
             $body->write('{"hits":{"msg":"none"}}');
