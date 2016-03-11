@@ -35,11 +35,11 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
         $target_id = $args['target_id'];
         $db = getDB();
         if ($target_id > 0) {
-            $sth = $db->prepare('SELECT * FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
+            $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer, targets.url, targets.code  FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
         } else {
-            $sth = $db->prepare('SELECT * FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id');
+            $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer, targets.url, targets.code  FROM hits,targets,owners WHERE hits.target_id = targets.id AND targets.owner_id = owners.id AND owners.id = :owner_id');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
         }
 
