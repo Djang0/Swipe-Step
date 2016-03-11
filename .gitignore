@@ -1,3 +1,3 @@
-tmp.json
+!tmp.json
 /logs/*
 !/logs/README.md
