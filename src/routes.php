@@ -25,6 +25,40 @@ $app->get('/dump/', function ($request, $response, $args) {
     //$data['id']='2';
     $body->write(json_encode($data));
 });
+//$date = date_create();
+//echo date_format($date, 'U = Y-m-d H:i:s')
+$app->get('/getCodes/', function ($request, $response, $args) {
+
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    try {
+        $id = $response->getHeaderLine('X-Owner');
+        $db = getDB();
+        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
+        $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+
+        $sth->execute();
+        $targets = $sth->fetchAll(PDO::FETCH_ASSOC);
+        $data['result']=array (
+          'timestamp'=> date_format($date, 'd-m-Y H:i:s'),
+          'code_count' => count($targets),
+          'codes' => $targets
+
+      );
+
+        $response = $response->withStatus(200);
+        $body->write(json_encode($targets));
+
+        //$db = null;
+    } catch (PDOException $e) {
+        $response->withStatus(404);
+        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    }
+});
+
+
 $app->get('/getTargets/', function ($request, $response, $args) {
 
     $response = $response->withHeader('Content-type', 'application/json');
