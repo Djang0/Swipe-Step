@@ -110,7 +110,7 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
             }
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
-              'target' => $target
+              'target' => $target[0]
 
           );
 
