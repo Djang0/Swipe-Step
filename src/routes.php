@@ -168,7 +168,7 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
           $sth->bindParam(':id', $id, PDO::PARAM_INT);
           $sth->execute();
           $response->withStatus(200);
-          $body->write('{"Success":{"msg":"Added target"}}');
+          $body->write('{"Success":{"msg":"Added target","target_id":'.strval($db->lastInsertId();).'}}');
           $db = null;
       } catch (PDOException $e) {
           $response->withStatus(503);
