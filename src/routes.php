@@ -190,6 +190,45 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     }
 }
 );
+
+// Authentication required. Test code availability. returns 'True' or 'False'
+// Method : GET
+// Parameter 1 : targets.code (String != '' and not null max 32 char)
+// (200) => Ok
+// (503) => PDOException
+// (400) => Failure. code AND / OR url is not properly formated.
+// 'Content-type'='application/json'
+$app->get('/testCode/{code}', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $code = $args['code'];
+    if(strlen($code)<=32 and strlen($code)>0 ){
+      try {
+          $db = getDB();
+          $sth = $db->prepare('select * from targets where code= :code');
+          $sth->bindParam(':code', $code, PDO::PARAM_STR);
+          $sth->execute();
+          $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
+          if (count($codes)==0) {
+            $response->withStatus(200);
+            $body->write('{"Result":{"Available":"True"}}');
+          }else{
+            $response->withStatus(200);
+            $body->write('{"Result":{"Available":"False"}}');
+          }
+
+          $db = null;
+      } catch (PDOException $e) {
+          $response->withStatus(503);
+          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+      }
+    }else{
+        $response->withStatus(400);
+        $body->write('{"Failure":{"msg":"code AND / OR url is not properly formated."}}');
+    }
+}
+);
+
 // No Authentication required. Do a redirection according to the provided code.
 // Keeps track of the HTTP_REFERER header if exists. Stores the hit (DateTime, IP and HTTP_REFERER)
 // HTTP_REFERER is transfered to the targeted url.
