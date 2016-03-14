@@ -41,10 +41,10 @@ $app->get('/getCodes/', function ($request, $response, $args) {
 
         $sth->execute();
         $targets = $sth->fetchAll(PDO::FETCH_ASSOC);
-        $data['result']=array (
-          'timestamp'=> date_format($date, 'd-m-Y H:i:s'),
+        $data['result'] = array(
+          'timestamp' => date_format($date, 'd-m-Y H:i:s'),
           'code_count' => count($targets),
-          'codes' => $targets
+          'codes' => $targets,
 
       );
 
@@ -58,29 +58,6 @@ $app->get('/getCodes/', function ($request, $response, $args) {
     }
 });
 
-
-$app->get('/getTargets/', function ($request, $response, $args) {
-
-    $response = $response->withHeader('Content-type', 'application/json');
-    $body = $response->getBody();
-    try {
-        $id = $response->getHeaderLine('X-Owner');
-        $db = getDB();
-        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
-        $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
-
-        $sth->execute();
-        $target = $sth->fetchAll(PDO::FETCH_ASSOC);
-
-        $response = $response->withStatus(200);
-        $body->write('{"hits":'.json_encode($target).'}');
-
-        $db = null;
-    } catch (PDOException $e) {
-        $response->withStatus(404);
-        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
-    }
-});
 $app->get('/getHits/{target_id}', function ($request, $response, $args) {
 
     $response = $response->withHeader('Content-type', 'application/json');
@@ -101,6 +78,72 @@ $app->get('/getHits/{target_id}', function ($request, $response, $args) {
         $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
         $response = $response->withStatus(200);
         $body->write('{"hits":'.json_encode($hits).'}');
+        $db = null;
+    } catch (PDOException $e) {
+        $response->withStatus(500);
+        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    }
+});
+$app->get('/getTarget/{target_id}', function ($request, $response, $args) {
+
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    $id = $response->getHeaderLine('X-Owner');
+    $target_id = $args['target_id'];
+    if (!is_null($target_id) and is_int($target_id) and $target_id > 0) {
+        try {
+            $db = getDB();
+            $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
+            $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+            $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+            $sth->execute();
+            $target = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if(count($target)==1){
+              $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
+              $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+              $sth->execute();
+              $hits= $sth->fetchAll(PDO::FETCH_ASSOC);
+              $target['hit_count']=count($hits);
+              $target['hits']=$hits;
+            }
+            $data['result'] = array(
+              'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+              'target' => $target,
+
+          );
+
+            $response = $response->withStatus(200);
+            $body->write(json_encode($data));
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(500);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+    }else{
+      $response->withStatus(200);
+      $body->write(json_encode($data));
+    }
+
+});
+
+$app->get('/getTargets/', function ($request, $response, $args) {
+
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    try {
+        $id = $response->getHeaderLine('X-Owner');
+        $db = getDB();
+        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
+        $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+
+        $sth->execute();
+        $target = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = $response->withStatus(200);
+        $body->write('{"hits":'.json_encode($target).'}');
+
         $db = null;
     } catch (PDOException $e) {
         $response->withStatus(404);
@@ -136,11 +179,13 @@ $app->get('/to/{code}', function ($request, $response, $args) {
                 header('Location: '.$target->url.'?referrer='.urlencode($referrer), true, 301);
             } else {
                 $response = $response->withStatus(404);
+
                 return $this->renderer->render($response, 'index.phtml', $args);
             }
             $db = null;
         } else {
             $response = $response->withStatus(404);
+
             return $this->renderer->render($response, 'index.phtml', $args);
         }
     } catch (PDOException $e) {
