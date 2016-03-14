@@ -157,7 +157,7 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $id = $response->getHeaderLine('X-Owner');
-    $code = $args['code'];
+    $code = strtolower($args['code']);
     $url = $args['url'];
     if(strlen($code)<=32 and strlen($code)>0 and strlen($url)<=2083 and strlen($url)>0){
       try {
@@ -201,7 +201,7 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
 $app->get('/testCode/{code}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
-    $code = $args['code'];
+    $code = strtolower($args['code']);
     if(strlen($code)<=32 and strlen($code)>0 ){
       try {
           $db = getDB();
@@ -242,7 +242,7 @@ $app->get('/to/{code}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'text/html');
     $body = $response->getBody();
     try {
-        $code = $args['code'];
+        $code = strtolower($args['code']);
         if (!is_null($code) and is_string($code) and $code != '') {
             $db = getDB();
             $sth = $db->prepare('select * from targets where code = :code');
