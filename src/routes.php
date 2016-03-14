@@ -91,7 +91,7 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
     $data = array();
     $date = date_create();
     $id = $response->getHeaderLine('X-Owner');
-    $target_id = $args['target_id'];
+    $target_id = intval($args['target_id']);
     if (!is_null($target_id) and is_int($target_id) and $target_id > 0) {
         try {
             $db = getDB();
@@ -100,13 +100,13 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
             $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
             $sth->execute();
             $target = $sth->fetchAll(PDO::FETCH_ASSOC);
-            if(count($target)==1){
-              $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
-              $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
-              $sth->execute();
-              $hits= $sth->fetchAll(PDO::FETCH_ASSOC);
-              $target['hit_count']=count($hits);
-              $target['hits']=$hits;
+            if (count($target) == 1) {
+                $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
+                $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+                $sth->execute();
+                $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
+                $target['hit_count'] = count($hits);
+                $target['hits'] = $hits;
             }
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
@@ -121,9 +121,9 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
             $response->withStatus(500);
             $body->write('{"error":{"msg":'.$e->getMessage().'}}');
         }
-    }else{
-      $response->withStatus(200);
-      $body->write(json_encode($data));
+    } else {
+        $response->withStatus(200);
+        $body->write(json_encode($data));
     }
 
 });
