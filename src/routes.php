@@ -162,7 +162,7 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     if(strlen($code)<=32 and strlen($code)>0 and strlen($url)<=2083 and strlen($url)>0){
       try {
           $db = getDB();
-          $sth = $db->prepare('select count(*) from targets where code= :code');
+          $sth = $db->prepare('select * from targets where code= :code');
           $sth->bindParam(':code', $code, PDO::PARAM_STR);
           $sth->execute();
           $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
