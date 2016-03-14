@@ -80,10 +80,12 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
               $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
               $target['hit_count'] = count($hits);
               $target['hits'] = $hits;
+              $targets[$target]=$target;
             }
 
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+              'target_count' => count($targets),
               'target' => $targets
 
           );
