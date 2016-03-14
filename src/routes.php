@@ -151,7 +151,7 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
 // Parameter 2 : targets.url (String != '' and not null must be urlencoded max 2083 char)
 // (200) => Ok
 // (503) => PDOException
-// (400) => Failure. code AND / OR url is not properly formated.
+// (400) => Failure. code AND / OR url is not properly formated. | Code already exists
 // 'Content-type'='application/json'
 $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
@@ -162,13 +162,23 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     if(strlen($code)<=32 and strlen($code)>0 and strlen($url)<=2083 and strlen($url)>0){
       try {
           $db = getDB();
-          $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
+          $sth = $db->prepare('select count(*) from targets where code= :code');
           $sth->bindParam(':code', $code, PDO::PARAM_STR);
-          $sth->bindParam(':url', $url, PDO::PARAM_STR);
-          $sth->bindParam(':id', $id, PDO::PARAM_INT);
           $sth->execute();
-          $response->withStatus(200);
-          $body->write('{"Success":{"msg":"Added target","target_id":'.strval($db->lastInsertId();).'}}');
+          $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
+          if (count($codes)=0) {
+            $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
+            $sth->bindParam(':code', $code, PDO::PARAM_STR);
+            $sth->bindParam(':url', $url, PDO::PARAM_STR);
+            $sth->bindParam(':id', $id, PDO::PARAM_INT);
+            $sth->execute();
+            $response->withStatus(200);
+            $body->write('{"Success":{"msg":"Added target","target_id":'.strval($db->lastInsertId()).'}}');
+          }else{
+            $response->withStatus(400);
+            $body->write('{"Failure":{"msg":"Target code already exists. Please generate an other one"}}');
+          }
+
           $db = null;
       } catch (PDOException $e) {
           $response->withStatus(503);
