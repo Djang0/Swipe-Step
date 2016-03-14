@@ -105,8 +105,8 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
                 $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
                 $sth->execute();
                 $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
-                $target['hit_count'] = count($hits);
-                $target['hits'] = $hits;
+                $target[0]['hit_count'] = count($hits);
+                $target[0]['hits'] = $hits;
             }
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
