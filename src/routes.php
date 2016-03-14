@@ -92,7 +92,7 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
             $body->write(json_encode($data));
             $db = null;
         } catch (PDOException $e) {
-            $response->withStatus(500);
+            $response->withStatus(404);
             $body->write('{"error":{"msg":'.$e->getMessage().'}}');
         }
 });
