@@ -49,7 +49,7 @@ $app->get('/getCodes/', function ($request, $response, $args) {
       );
 
         $response = $response->withStatus(200);
-        $body->write(json_encode($targets));
+        $body->write(json_encode($data));
 
         //$db = null;
     } catch (PDOException $e) {
