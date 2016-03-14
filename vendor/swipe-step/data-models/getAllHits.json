@@ -7,7 +7,7 @@
       "stamp_created": "2016-03-11 08:37:23",
       "url": "http:\/\/www.google.com%2Ftoto.php%3Ftoto%3D4566%26dd%3D256",
       "code": "gfkdjhfk5866rrr",
-      "hit_count":2,
+      "hit_count": 2,
       "hits": [{
         "id": "2",
         "stamp": "2016-03-11 10:21:44",
@@ -24,7 +24,7 @@
       "stamp_created": "2016-03-11 08:37:23",
       "url": "http:\/\/www.google.com%2Ftoto.php%3Ftoto%3D4566%26dd%3D256",
       "code": "jdjdjjjlkj",
-      "hit_count":2,
+      "hit_count": 2,
       "hits": [{
         "id": "4",
         "stamp": "2016-03-11 10:21:44",
@@ -36,6 +36,32 @@
         "ip": "172.16.64.1",
         "referrer": ""
       }]
+    }]
+  }
+}
+ {
+  "result": {
+    "timestamp": "14-03-2016 12:10:36",
+    "target": [{
+      "id": "9",
+      "stamp_created": "2016-03-11 08:37:23",
+      "code": "http:\/\/www.google.com%2Ftoto.php",
+      "url": "http:\/\/www.google.com%2Ftoto.php%3Ftoto%3D4566%26dd%3D256"
+    }, {
+      "id": "11",
+      "stamp_created": "2016-03-11 08:39:58",
+      "code": "dd",
+      "url": "http:\/\/www.google.com%2Ftoto.php%3Ftoto%3D4566%26dd%3D256"
+    }, {
+      "id": "13",
+      "stamp_created": "2016-03-11 08:40:07",
+      "code": "ddf",
+      "url": "http:\/\/www.google.com%2Ftoto.php%3Ftoto%3D4566%26dd%3D256"
+    }, {
+      "id": "14",
+      "stamp_created": "2016-03-11 10:04:14",
+      "code": "hello",
+      "url": "http:\/\/www.slimframework.com\/docs\/objects\/request.html#the-request-method"
     }]
   }
 }

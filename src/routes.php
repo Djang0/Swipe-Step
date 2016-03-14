@@ -80,7 +80,7 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
               $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
               $target['hit_count'] = count($hits);
               $target['hits'] = $hits;
-              $targets[$target]=$target;
+              $targets[$target]=$target;  
             }
 
             $data['result'] = array(
