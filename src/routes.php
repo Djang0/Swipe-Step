@@ -166,7 +166,7 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
           $sth->bindParam(':code', $code, PDO::PARAM_STR);
           $sth->execute();
           $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
-          if (count($codes)=0) {
+          if (count($codes)==0) {
             $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
             $sth->bindParam(':url', $url, PDO::PARAM_STR);
