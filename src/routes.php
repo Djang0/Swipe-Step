@@ -58,6 +58,45 @@ $app->get('/getCodes/', function ($request, $response, $args) {
     }
 });
 
+$app->get('/getAllHits/', function ($request, $response, $args) {
+
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    $id = $response->getHeaderLine('X-Owner');
+    //$target_id = intval($args['target_id']);
+        try {
+            $db = getDB();
+            $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
+            $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+            $sth->execute();
+            $targets = $sth->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($targets as $target) {
+              $target_id = intval($target=>id);
+              $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
+              $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+              $sth->execute();
+              $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
+              $target['hit_count'] = count($hits);
+              $target['hits'] = $hits;
+            }
+
+            $data['result'] = array(
+              'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+              'target' => $targets
+
+          );
+
+            $response = $response->withStatus(200);
+            $body->write(json_encode($data));
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(500);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+});
+
 $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
 
     $response = $response->withHeader('Content-type', 'application/json');
@@ -84,7 +123,7 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
             }
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
-              'target' => $target[0]
+              'target' => $target[0],
 
           );
 
