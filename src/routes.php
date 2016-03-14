@@ -72,15 +72,16 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->execute();
             $targets = $sth->fetchAll(PDO::FETCH_ASSOC);
+            $i=0;
             foreach ($targets as $target) {
               $target_id = intval($target['id']);
               $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
               $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
               $sth->execute();
               $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
-              $target['hit_count'] = count($hits);
-              $target['hits'] = $hits;
-              $targets[$target]=$target;  
+              $targets[$i]['hit_count'] = count($hits);
+              $targets[$i]['hits'] = $hits;
+              $i=$i+1
             }
 
             $data['result'] = array(
