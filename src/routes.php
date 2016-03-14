@@ -102,29 +102,6 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
 
 });
 
-$app->get('/getTargets/', function ($request, $response, $args) {
-
-    $response = $response->withHeader('Content-type', 'application/json');
-    $body = $response->getBody();
-    try {
-        $id = $response->getHeaderLine('X-Owner');
-        $db = getDB();
-        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
-        $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
-
-        $sth->execute();
-        $target = $sth->fetchAll(PDO::FETCH_ASSOC);
-
-        $response = $response->withStatus(200);
-        $body->write('{"hits":'.json_encode($target).'}');
-
-        $db = null;
-    } catch (PDOException $e) {
-        $response->withStatus(404);
-        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
-    }
-});
-
 //keep referer in params
 $app->get('/to/{code}', function ($request, $response, $args) {
 
