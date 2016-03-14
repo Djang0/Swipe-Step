@@ -1,34 +1,37 @@
 <?php
 // Routes
 
-//$app->get('/[{name}]', function ($request, $response, $args) {
-    // Sample log message
-    //$this->logger->info("Slim-Skeleton '/' route");
-
-    // Render index view
-  //  return $this->renderer->render($response, 'index.phtml', $args);
-//});
-
+// No Authentication required.
+// Method : GET
+// (200) Nothing to see here !
+// 'Content-type'='application/json'
 $app->get('/', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = array();
     $data['message'] = 'Nothing to see here!';
-    //$data['id']='2';
+    $response = $response->withStatus(200);
     $body->write(json_encode($data));
 });
+
+// No Authentication required.
+// Method : GET
+// (200) Dumps request for debug purpose.
+// 'Content-type'='application/json'
 $app->get('/dump/', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = $request->getHeaders();
-
-    //$data['id']='2';
+    $response = $response->withStatus(200);
     $body->write(json_encode($data));
 });
-//$date = date_create();
-//echo date_format($date, 'U = Y-m-d H:i:s')
-$app->get('/getCodes/', function ($request, $response, $args) {
 
+// Authentication required. Returns all target specifications owned by the authenticated user.
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
+$app->get('/getCodes/', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = array();
@@ -45,63 +48,64 @@ $app->get('/getCodes/', function ($request, $response, $args) {
           'timestamp' => date_format($date, 'd-m-Y H:i:s'),
           'code_count' => count($targets),
           'codes' => $targets,
-
       );
-
         $response = $response->withStatus(200);
         $body->write(json_encode($data));
-
-        //$db = null;
+        $db = null;
     } catch (PDOException $e) {
-        $response->withStatus(404);
+        $response->withStatus(503);
         $body->write('{"error":{"msg":'.$e->getMessage().'}}');
     }
 });
-
+// Authentication required. Returns all hits owned by the authenticated user and grouped by target.
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
 $app->get('/getAllHits/', function ($request, $response, $args) {
-
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = array();
     $date = date_create();
     $id = $response->getHeaderLine('X-Owner');
-    //$target_id = intval($args['target_id']);
         try {
             $db = getDB();
             $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->execute();
             $targets = $sth->fetchAll(PDO::FETCH_ASSOC);
-            $i=0;
+            $i = 0;
             foreach ($targets as $target) {
-              $target_id = intval($target['id']);
-              $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
-              $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
-              $sth->execute();
-              $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
-              $targets[$i]['hit_count'] = count($hits);
-              $targets[$i]['hits'] = $hits;
-              $i=$i+1;
+                $target_id = intval($target['id']);
+                $sth = $db->prepare('SELECT hits.id, hits.stamp, hits.ip, hits.referrer  FROM hits,targets WHERE hits.target_id = targets.id AND targets.id = :target_id ');
+                $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
+                $sth->execute();
+                $hits = $sth->fetchAll(PDO::FETCH_ASSOC);
+                $targets[$i]['hit_count'] = count($hits);
+                $targets[$i]['hits'] = $hits;
+                $i = $i + 1;
             }
-
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
               'target_count' => count($targets),
-              'target' => $targets
-
+              'target' => $targets,
           );
-
             $response = $response->withStatus(200);
             $body->write(json_encode($data));
             $db = null;
         } catch (PDOException $e) {
-            $response->withStatus(404);
+            $response->withStatus(503);
             $body->write('{"error":{"msg":'.$e->getMessage().'}}');
         }
 });
 
+// Authentication required. Returns all hits for a given target owned by the authenticated user.
+// Parameter : targets.id (integer not null >0)
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
 $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
-
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = array();
@@ -127,14 +131,12 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
             $data['result'] = array(
               'timestamp' => date_format($date, 'd-m-Y H:i:s'),
               'target' => $target[0],
-
           );
-
             $response = $response->withStatus(200);
             $body->write(json_encode($data));
             $db = null;
         } catch (PDOException $e) {
-            $response->withStatus(500);
+            $response->withStatus(503);
             $body->write('{"error":{"msg":'.$e->getMessage().'}}');
         }
     } else {
@@ -143,10 +145,51 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
     }
 
 });
-
-//keep referer in params
+// Authentication required. Adds a target owned by the authenticated user.
+// Method : GET
+// Parameter 1 : targets.code (String != '' and not null max 32 char)
+// Parameter 2 : targets.url (String != '' and not null must be urlencoded max 2083 char)
+// (200) => Ok
+// (503) => PDOException
+// (400) => Failure. code AND / OR url is not properly formated.
+// 'Content-type'='application/json'
+$app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $id = $response->getHeaderLine('X-Owner');
+    $code = $args['code'];
+    $url = $args['url'];
+    if(strlen($code)<=32 and strlen($code)>0 and strlen($url)<=2083 and strlen($url)>0){
+      try {
+          $db = getDB();
+          $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
+          $sth->bindParam(':code', $code, PDO::PARAM_STR);
+          $sth->bindParam(':url', $url, PDO::PARAM_STR);
+          $sth->bindParam(':id', $id, PDO::PARAM_INT);
+          $sth->execute();
+          $response->withStatus(200);
+          $body->write('{"Success":{"msg":"Added target"}}');
+          $db = null;
+      } catch (PDOException $e) {
+          $response->withStatus(503);
+          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+      }
+    }else{
+        $response->withStatus(400);
+        $body->write('{"Failure":{"msg":"code AND / OR url is not properly formated."}}');
+    }
+}
+);
+// No Authentication required. Do a redirection according to the provided code.
+// Keeps track of the HTTP_REFERER header if exists. Stores the hit (DateTime, IP and HTTP_REFERER)
+// HTTP_REFERER is transfered to the targeted url.
+// Method : GET
+// Parameter : targets.code (String != '' and not null)
+//  (404) Code note found or code invalid (custom 404 html page)
+//  (503) PDOException
+//  (301) transfert OK
+// 'Content-type'='text/html'
 $app->get('/to/{code}', function ($request, $response, $args) {
-
     $response = $response->withHeader('Content-type', 'text/html');
     $body = $response->getBody();
     try {
@@ -155,10 +198,8 @@ $app->get('/to/{code}', function ($request, $response, $args) {
             $db = getDB();
             $sth = $db->prepare('select * from targets where code = :code');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
-
             $sth->execute();
             $target = $sth->fetch(PDO::FETCH_OBJ);
-
             if ($target) {
                 $ipAddress = $request->getAttribute('ip_address');
                 $referrer = $request->getHeaderLine('HTTP_REFERER');
@@ -167,7 +208,6 @@ $app->get('/to/{code}', function ($request, $response, $args) {
                 $sth->bindParam(':ip', $ipAddress, PDO::PARAM_STR);
                 $sth->bindParam(':ref', $referrer, PDO::PARAM_STR);
                 $sth->execute();
-
                 $response = $response->withStatus(301);
                 header('Location: '.$target->url.'?referrer='.urlencode($referrer), true, 301);
             } else {
@@ -182,32 +222,7 @@ $app->get('/to/{code}', function ($request, $response, $args) {
             return $this->renderer->render($response, 'index.phtml', $args);
         }
     } catch (PDOException $e) {
-        $response->withStatus(404);
+        $response->withStatus(503);
         $body->write('{"error":{"msg":'.$e->getMessage().'}}');
     }
 });
-$app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
-    $response = $response->withHeader('Content-type', 'application/json');
-    $body = $response->getBody();
-    try {
-        $id = $response->getHeaderLine('X-Owner');
-        $code = $args['code'];
-        $url = $args['url'];
-
-        $db = getDB();
-        $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
-        $sth->bindParam(':code', $code, PDO::PARAM_STR);
-        $sth->bindParam(':url', $url, PDO::PARAM_STR);
-        $sth->bindParam(':id', $id, PDO::PARAM_INT);
-        $sth->execute();
-        $response->withStatus(200);
-        $body->write('{"Success":{"msg":"Added target"}}');
-        $db = null;
-    } catch (PDOException $e) {
-        $response->withStatus(404);
-        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
-    }
-
-}
-
-);
