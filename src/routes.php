@@ -25,7 +25,37 @@ $app->get('/dump/', function ($request, $response, $args) {
     $response = $response->withStatus(200);
     $body->write(json_encode($data));
 });
+// Authentication required. Returns all hooks data having an id > {id} param.
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
+$app->get('/getHooks/{id}', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    $ref_id = intval($args['id']);
+    try {
 
+        $db = getDB();
+        $sth = $db->prepare('SELECT hook_calls.call_details  FROM hook_calls WHERE hook_calls.id > :ref_id');
+        $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
+        $sth->execute();
+        $calls = $sth->fetchAll(PDO::FETCH_ASSOC);
+        $data['result'] = array(
+          'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+          'hook_call_count' => count($calls),
+          'hook_calls' => $calls,
+      );
+        $response = $response->withStatus(200);
+        $body->write(json_encode($data));
+        $db = null;
+    } catch (PDOException $e) {
+        $response->withStatus(503);
+        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    }
+});
 // Authentication required. Returns all target specifications owned by the authenticated user.
 // Method : GET
 // (200) => Ok
@@ -270,6 +300,30 @@ $app->get('/to/{code}', function ($request, $response, $args) {
 
             return $this->renderer->render($response, 'index.phtml', $args);
         }
+    } catch (PDOException $e) {
+        $response->withStatus(503);
+        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    }
+});
+// No Authentication required. Does log the content of POST data to the hook_calls table.
+// Method : POST
+//  (503) PDOException
+//  (200) Ok !
+// 'Content-type'='application / json'
+$app->post('/hook/', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    try {
+        $data = $request->getBody();
+        $db = getDB();
+        $sth = $db->prepare('insert into hook_calls(call_details) values(:code)');
+        $sth->bindParam(':code', $data, PDO::PARAM_STR);
+        $sth->execute();
+        $db = null;
+        $response = $response->withStatus(200);
+        $body->write('{"success":"Ok !"}');
+
+
     } catch (PDOException $e) {
         $response->withStatus(503);
         $body->write('{"error":{"msg":'.$e->getMessage().'}}');

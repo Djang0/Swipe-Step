@@ -21,7 +21,15 @@
   --
 
   -- --------------------------------------------------------
-
+  --
+  -- Structure de la table `hook_calls`
+  --
+  DROP TABLE IF EXISTS `hook_calls`;
+  CREATE TABLE IF NOT EXISTS `hook_calls` (
+    `id` int(6) NOT NULL,
+    `stamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `call_details` varchar(2083) NOT NULL
+  ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
   --
   -- Structure de la table `hits`
   --
@@ -53,12 +61,7 @@
     `stamp_last_get` datetime NOT NULL
   ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-  --
-  -- Contenu de la table `owners`
-  --
 
-  INSERT INTO `owners` (`id`, `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
-  (1, 'BP_generic', '863bab09542012a045aa112b31c4261d', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
   -- --------------------------------------------------------
 
@@ -79,7 +82,11 @@
   --
   -- Index pour les tables exportées
   --
-
+  --
+  -- Index pour la table `hook_calls`
+  --
+  ALTER TABLE `hook_calls`
+    ADD PRIMARY KEY (`id`),
   --
   -- Index pour la table `hits`
   --
@@ -105,22 +112,35 @@
   --
   -- AUTO_INCREMENT pour les tables exportées
   --
-
+  --
+  -- AUTO_INCREMENT pour la table `hook_calls`
+  --
+  ALTER TABLE `hook_calls`
+    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
   --
   -- AUTO_INCREMENT pour la table `hits`
   --
   ALTER TABLE `hits`
-    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
   --
   -- AUTO_INCREMENT pour la table `owners`
   --
   ALTER TABLE `owners`
-    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
   --
   -- AUTO_INCREMENT pour la table `targets`
   --
   ALTER TABLE `targets`
-    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=15;
+    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
+
+    --
+    -- Contenu de la table `owners`
+    --
+
+    INSERT INTO `owners` ( `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
+    ('BP_generic', '863bab09542012a045aa112b31c4261d', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+    INSERT INTO `owners` ( `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
+    ('SendInBlue_hook_caller', '4c5a1503fdba1ddd308846aaa13aa7c8', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
   /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
   /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
   /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

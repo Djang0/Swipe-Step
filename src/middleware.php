@@ -19,7 +19,7 @@ $app->add(function ($request, $response, $next) {
                 $pth = substr($request->getUri()->getPath(), 0, 4);
                 $pth2 = substr($request->getUri()->getPath(), 0, 6);
                 // filtering No authentication required verbs
-                if ($pth == '/to/' or $pth2 == '/from/' or $pth2 == '/dump/') {
+                if ($pth == '/to/' or $pth2 == '/from/' or $pth2 == '/dump/' or $pth2='/hook/') {
                     $response = $response->withHeader('X-Owner', '0');
                     $response = $response->withHeader('X-Authenticated', 'True');
                     $response = $response->withStatus(200);
