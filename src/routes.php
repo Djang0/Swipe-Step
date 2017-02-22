@@ -38,7 +38,8 @@ $app->get('/getHooks/{id}', function ($request, $response, $args) {
     $ref_id = intval($args['id']);
     try {
 
-        $db = getDB();
+        // $db = getDB();
+        $db = $this->db;
         $sth = $db->prepare('SELECT hook_calls.call_details  FROM hook_calls WHERE hook_calls.id > :ref_id');
         $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
         $sth->execute();
@@ -68,7 +69,8 @@ $app->get('/getCodes/', function ($request, $response, $args) {
     $date = date_create();
     try {
         $id = $response->getHeaderLine('X-Owner');
-        $db = getDB();
+        // $db = getDB();
+        $db = $this->db;
         $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
         $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
 
@@ -99,7 +101,8 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
     $date = date_create();
     $id = $response->getHeaderLine('X-Owner');
         try {
-            $db = getDB();
+            // $db = getDB();
+          $db = $this->db;
             $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->execute();
@@ -144,7 +147,8 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
     $target_id = intval($args['target_id']);
     if (!is_null($target_id) and is_int($target_id) and $target_id > 0) {
         try {
-            $db = getDB();
+            // $db = getDB();
+          $db = $this->db;
             $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
@@ -189,32 +193,33 @@ $app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
     $id = $response->getHeaderLine('X-Owner');
     $code = strtolower($args['code']);
     $url = $args['url'];
-    if(strlen($code)<=32 and strlen($code)>0 and strlen($url)<=2083 and strlen($url)>0){
-      try {
-          $db = getDB();
-          $sth = $db->prepare('select * from targets where code= :code');
-          $sth->bindParam(':code', $code, PDO::PARAM_STR);
-          $sth->execute();
-          $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
-          if (count($codes)==0) {
-            $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
+    if (strlen($code) <= 32 and strlen($code) > 0 and strlen($url) <= 2083 and strlen($url) > 0) {
+        try {
+            // $db = getDB();
+        $db = $this->db;
+            $sth = $db->prepare('select * from targets where code= :code');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
-            $sth->bindParam(':url', $url, PDO::PARAM_STR);
-            $sth->bindParam(':id', $id, PDO::PARAM_INT);
             $sth->execute();
-            $response->withStatus(200);
-            $body->write('{"Success":{"msg":"Added target","target_id":'.strval($db->lastInsertId()).'}}');
-          }else{
-            $response->withStatus(400);
-            $body->write('{"Failure":{"msg":"Target code already exists. Please generate an other one"}}');
-          }
+            $codes = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if (count($codes) == 0) {
+                $sth = $db->prepare('INSERT INTO `clicktrax`.`targets` (`id`, `stamp_created`, `code`, `url`, `owner_id`) VALUES (NULL, CURRENT_TIMESTAMP, :code, :url, :id)');
+                $sth->bindParam(':code', $code, PDO::PARAM_STR);
+                $sth->bindParam(':url', $url, PDO::PARAM_STR);
+                $sth->bindParam(':id', $id, PDO::PARAM_INT);
+                $sth->execute();
+                $response->withStatus(200);
+                $body->write('{"Success":{"msg":"Added target","target_id":'.strval($db->lastInsertId()).'}}');
+            } else {
+                $response->withStatus(400);
+                $body->write('{"Failure":{"msg":"Target code already exists. Please generate an other one"}}');
+            }
 
-          $db = null;
-      } catch (PDOException $e) {
-          $response->withStatus(503);
-          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
-      }
-    }else{
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(503);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+    } else {
         $response->withStatus(400);
         $body->write('{"Failure":{"msg":"code AND / OR url is not properly formated."}}');
     }
@@ -232,27 +237,28 @@ $app->get('/testCode/{code}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $code = strtolower($args['code']);
-    if(strlen($code)<=32 and strlen($code)>0 ){
-      try {
-          $db = getDB();
-          $sth = $db->prepare('select * from targets where code= :code');
-          $sth->bindParam(':code', $code, PDO::PARAM_STR);
-          $sth->execute();
-          $codes= $sth->fetchAll(PDO::FETCH_ASSOC);
-          if (count($codes)==0) {
-            $response->withStatus(200);
-            $body->write('{"Result":{"Available":"True"}}');
-          }else{
-            $response->withStatus(200);
-            $body->write('{"Result":{"Available":"False"}}');
-          }
+    if (strlen($code) <= 32 and strlen($code) > 0) {
+        try {
+            // $db = getDB();
+        $db = $this->db;
+            $sth = $db->prepare('select * from targets where code= :code');
+            $sth->bindParam(':code', $code, PDO::PARAM_STR);
+            $sth->execute();
+            $codes = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if (count($codes) == 0) {
+                $response->withStatus(200);
+                $body->write('{"Result":{"Available":"True"}}');
+            } else {
+                $response->withStatus(200);
+                $body->write('{"Result":{"Available":"False"}}');
+            }
 
-          $db = null;
-      } catch (PDOException $e) {
-          $response->withStatus(503);
-          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
-      }
-    }else{
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(503);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+    } else {
         $response->withStatus(400);
         $body->write('{"Failure":{"msg":"code AND / OR url is not properly formated."}}');
     }
@@ -274,7 +280,8 @@ $app->get('/to/{code}', function ($request, $response, $args) {
     try {
         $code = strtolower($args['code']);
         if (!is_null($code) and is_string($code) and $code != '') {
-            $db = getDB();
+            // $db = getDB();
+          $db = $this->db;
             $sth = $db->prepare('select * from targets where code = :code');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
             $sth->execute();
@@ -315,15 +322,14 @@ $app->post('/hook/', function ($request, $response, $args) {
     $body = $response->getBody();
     try {
         $data = $request->getBody();
-        $db = getDB();
+        // $db = getDB();
+        $db = $this->db;
         $sth = $db->prepare('insert into hook_calls(call_details) values(:code)');
         $sth->bindParam(':code', $data, PDO::PARAM_STR);
         $sth->execute();
         $db = null;
         $response = $response->withStatus(200);
         $body->write('{"success":"Ok !"}');
-
-
     } catch (PDOException $e) {
         $response->withStatus(503);
         $body->write('{"error":{"msg":'.$e->getMessage().'}}');

@@ -1,17 +1,25 @@
 <?php
+
 return [
     'settings' => [
         'displayErrorDetails' => true, // set to false in production
 
         // Renderer settings
         'renderer' => [
-            'template_path' => __DIR__ . '/../templates/',
+            'template_path' => __DIR__.'/../templates/',
         ],
 
         // Monolog settings
         'logger' => [
             'name' => 'slim-app',
-            'path' => __DIR__ . '/../logs/app.log',
+            'path' => __DIR__.'/../logs/app.log',
+        ],
+        // Database connection settings
+        'db' => [
+            'host' => 'localhost',
+            'dbname' => 'slim3',
+            'user' => 'root',
+            'pass' => '',
         ],
     ],
 ];

@@ -13,18 +13,18 @@ require __DIR__ . '/../vendor/autoload.php';
 session_start();
 $settings = require __DIR__ . '/../src/settings.php';
 $app = new \Slim\App($settings);
-function getDB()
-{
-    $dbhost = "localhost";
-    $dbuser = "root";
-    $dbpass = "guliver511";
-    $dbname = "clicktrax";
- 
-    $mysql_conn_string = "mysql:host=$dbhost;dbname=$dbname";
-    $dbConnection = new PDO($mysql_conn_string, $dbuser, $dbpass); 
-    $dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    return $dbConnection;
-}
+// function getDB()
+// {
+//     $dbhost = "localhost";
+//     $dbuser = "root";
+//     $dbpass = "guliver511";
+//     $dbname = "clicktrax";
+//
+//     $mysql_conn_string = "mysql:host=$dbhost;dbname=$dbname";
+//     $dbConnection = new PDO($mysql_conn_string, $dbuser, $dbpass);
+//     $dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//     return $dbConnection;
+// }
 
 // Set up dependencies
 require __DIR__ . '/../src/dependencies.php';
