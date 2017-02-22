@@ -30,32 +30,50 @@ $app->get('/dump/', function ($request, $response, $args) {
 // (200) => Ok
 // (503) => PDOException
 // 'Content-type'='application/json'
-$app->get('/getHooks/{id}', function ($request, $response, $args) {
+$app->get('/getHooks/{name}/{id}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $data = array();
     $date = date_create();
     $ref_id = intval($args['id']);
-    try {
-
-        // $db = getDB();
+    $hook_name = $args['name'];
+    if(strlen($hook_name)==32){
+      try {
         $db = $this->db;
-        $sth = $db->prepare('SELECT hook_calls.call_details  FROM hook_calls WHERE hook_calls.id > :ref_id');
-        $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
+        $sth = $db->prepare('select * from hooks where name= :name');
+        $sth->bindParam(':name', $hook_name, PDO::PARAM_STR);
         $sth->execute();
-        $calls = $sth->fetchAll(PDO::FETCH_ASSOC);
-        $data['result'] = array(
-          'timestamp' => date_format($date, 'd-m-Y H:i:s'),
-          'hook_call_count' => count($calls),
-          'hook_calls' => $calls,
-      );
-        $response = $response->withStatus(200);
-        $body->write(json_encode($data));
+        $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
+        if (count($hooks) == 1) {
+            $hook_id=$hooks[0]['id'];
+            $sth = $db->prepare('SELECT hook_calls.call_details  FROM hook_calls WHERE hook_calls.id > :ref_id and hook_id = :hook_id');
+            $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
+            $sth->bindParam(':hook_id', $hook_id, PDO::PARAM_INT);
+            $sth->execute();
+            $calls = $sth->fetchAll(PDO::FETCH_ASSOC);
+            $data['result'] = array(
+              'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+              'hook_call_count' => count($calls),
+              'hook_calls' => $calls,
+          );
+            $response = $response->withStatus(200);
+            $body->write(json_encode($data));
+        } else {
+          $response->withStatus(422);
+          $body->write('{"Failure":{"msg":"Hook does not exists."}}');
+        }
+
         $db = null;
-    } catch (PDOException $e) {
-        $response->withStatus(503);
-        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+
+      } catch (PDOException $e) {
+          $response->withStatus(503);
+          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+      }
+    }else{
+      $response->withStatus(400);
+      $body->write('{"Failure":{"msg":"Not a hook name."}}');
     }
+
 });
 // Authentication required. Returns all target specifications owned by the authenticated user.
 // Method : GET
@@ -179,6 +197,52 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
     }
 
 });
+
+// Authentication required. creates a Hook by generating MD5 of the string_to_encode parameter.
+// Method : GET
+// Parameter 1 : string_to_encode (String != '')
+// (200) => Ok
+// (503) => PDOException
+// (400) => Failure. name is not properly formated. | hook already exists.
+// 'Content-type'='application/json'
+$app->get('/addHook/{string_to_encode}', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $id = $response->getHeaderLine('X-Owner');
+    $code = strtolower($args['string_to_encode']);
+    if (strlen($code) > 0) {
+      $md5 = md5($code);
+        try {
+            // $db = getDB();
+            $db = $this->db;
+            $sth = $db->prepare('select * from hooks where name= :md5');
+            $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
+            $sth->execute();
+            $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if (count($hooks) == 0) {
+                $sth = $db->prepare('INSERT INTO hooks (name) VALUES (:md5)');
+                $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
+                $sth->execute();
+                $response->withStatus(200);
+                $body->write('{"Success":{"msg":"Created hook","hook_name":"'.$md5.'"}}');
+            } else {
+                $response->withStatus(400);
+                $body->write('{"Failure":{"msg":"Hook code already exists. Please generate an other one"}}');
+            }
+
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(503);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+    } else {
+        $response->withStatus(400);
+        $body->write('{"Failure":{"msg":"name is not properly formated."}}');
+    }
+}
+);
+
+
 // Authentication required. Adds a target owned by the authenticated user.
 // Method : GET
 // Parameter 1 : targets.code (String != '' and not null max 32 char)
@@ -317,21 +381,40 @@ $app->get('/to/{code}', function ($request, $response, $args) {
 //  (503) PDOException
 //  (200) Ok !
 // 'Content-type'='application / json'
-$app->post('/hook/', function ($request, $response, $args) {
+$app->post('/hook/{name}', function ($request, $response, $args) {
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
-    try {
-        $data = $request->getBody();
-        // $db = getDB();
-        $db = $this->db;
-        $sth = $db->prepare('insert into hook_calls(call_details) values(:code)');
-        $sth->bindParam(':code', $data, PDO::PARAM_STR);
-        $sth->execute();
-        $db = null;
-        $response = $response->withStatus(200);
-        $body->write('{"success":"Ok !"}');
-    } catch (PDOException $e) {
-        $response->withStatus(503);
-        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    $hook_name = strtolower($args['name']);
+    $data = $request->getBody();
+    if (strlen($hook_name) == 32 ) {
+        try {
+            // $db = getDB();
+            $db = $this->db;
+            $sth = $db->prepare('select * from hooks where name= :name');
+            $sth->bindParam(':name', $hook_name, PDO::PARAM_STR);
+            $sth->execute();
+            $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if (count($hooks) == 1) {
+                $id=$hooks[0]['id'];
+                $sth = $db->prepare('insert into hook_calls(hook_id,call_details) values(:id,:code)');
+                $sth->bindParam(':id', $id, PDO::PARAM_INT);
+                $sth->bindParam(':code', $data, PDO::PARAM_STR);
+                $sth->execute();
+                $db = null;
+                $response = $response->withStatus(200);
+                $body->write('{"success":"Ok !"}');
+            } else {
+              $response->withStatus(422);
+              $body->write('{"Failure":{"msg":"Hook does not exists."}}');
+            }
+
+            $db = null;
+        } catch (PDOException $e) {
+            $response->withStatus(503);
+            $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+        }
+    } else {
+        $response->withStatus(400);
+        $body->write('{"Failure":{"msg":"Not a hook name."}}');
     }
 });

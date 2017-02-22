@@ -19,7 +19,15 @@
   --
   -- Base de données :  `clicktrax`
   --
-
+  -- --------------------------------------------------------
+  --
+  -- Structure de la table `hook_calls`
+  --
+  DROP TABLE IF EXISTS `hooks`;
+  CREATE TABLE IF NOT EXISTS `hooks` (
+    `id` int(6) NOT NULL,
+    `name` varchar(32) NOT NULL
+  ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
   -- --------------------------------------------------------
   --
   -- Structure de la table `hook_calls`
@@ -28,6 +36,7 @@
   CREATE TABLE IF NOT EXISTS `hook_calls` (
     `id` int(6) NOT NULL,
     `stamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `hook_id` int(6) NOT NULL,
     `call_details` varchar(2083) NOT NULL
   ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
   --
@@ -83,10 +92,18 @@
   -- Index pour les tables exportées
   --
   --
+  -- Index pour la table `hooks`
+  --
+  ALTER TABLE `hooks`
+    ADD PRIMARY KEY (`id`),
+    ADD UNIQUE KEY `name_uniq` (`name`);
+
+  --
   -- Index pour la table `hook_calls`
   --
   ALTER TABLE `hook_calls`
     ADD PRIMARY KEY (`id`),
+    ADD KEY `calls_fk_hook` (`hook_id`);
   --
   -- Index pour la table `hits`
   --
@@ -112,6 +129,11 @@
   --
   -- AUTO_INCREMENT pour les tables exportées
   --
+  --
+  -- AUTO_INCREMENT pour la table `hooks`
+  --
+  ALTER TABLE `hooks`
+    MODIFY `id` int(6) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
   --
   -- AUTO_INCREMENT pour la table `hook_calls`
   --
