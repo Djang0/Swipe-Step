@@ -1,0 +1,25 @@
+<?php
+// rename this file to local.settings.php to allow local config override (see .gitignore)
+return [
+    'settings' => [
+        'displayErrorDetails' => true, // set to false in production
+
+        // Renderer settings
+        'renderer' => [
+            'template_path' => __DIR__.'/../templates/',
+        ],
+
+        // Monolog settings
+        'logger' => [
+            'name' => 'slim-app',
+            'path' => __DIR__.'/../logs/app.log',
+        ],
+        // Database connection settings
+        'db' => [
+            'host' => 'localhost',
+            'dbname' => 'slim3',
+            'user' => 'root',
+            'pass' => '',
+        ],
+    ],
+];

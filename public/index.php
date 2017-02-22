@@ -12,13 +12,15 @@ require __DIR__ . '/../vendor/autoload.php';
 //require_once 'lib/mysql.php';
 session_start();
 $settings = require __DIR__ . '/../src/settings.php';
+$localSettings = require __DIR__ . '/../src/settings.php';
+$settings = Zend\Stdlib\ArrayUtils::merge($settings, $localSettings);
 $app = new \Slim\App($settings);
 // function getDB()
 // {
 //     $dbhost = "localhost";
 //     $dbuser = "root";
-//     $dbpass = "guliver511";
-//     $dbname = "clicktrax";
+//     $dbpass = "";
+//     $dbname = "";
 //
 //     $mysql_conn_string = "mysql:host=$dbhost;dbname=$dbname";
 //     $dbConnection = new PDO($mysql_conn_string, $dbuser, $dbpass);
