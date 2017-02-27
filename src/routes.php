@@ -120,7 +120,7 @@ $app->get('/getAllHits/', function ($request, $response, $args) {
     $id = $response->getHeaderLine('X-Owner');
         try {
             // $db = getDB();
-          $db = $this->db;
+            $db = $this->db;
             $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->execute();
@@ -166,7 +166,7 @@ $app->get('/getTarget/{target_id}', function ($request, $response, $args) {
     if (!is_null($target_id) and is_int($target_id) and $target_id > 0) {
         try {
             // $db = getDB();
-          $db = $this->db;
+            $db = $this->db;
             $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.code, targets.url FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id AND targets.id = :target_id ');
             $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
             $sth->bindParam(':target_id', $target_id, PDO::PARAM_INT);
@@ -304,7 +304,7 @@ $app->get('/testCode/{code}', function ($request, $response, $args) {
     if (strlen($code) <= 32 and strlen($code) > 0) {
         try {
             // $db = getDB();
-        $db = $this->db;
+            $db = $this->db;
             $sth = $db->prepare('select * from targets where code= :code');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
             $sth->execute();
@@ -345,7 +345,7 @@ $app->get('/to/{code}', function ($request, $response, $args) {
         $code = strtolower($args['code']);
         if (!is_null($code) and is_string($code) and $code != '') {
             // $db = getDB();
-          $db = $this->db;
+            $db = $this->db;
             $sth = $db->prepare('select * from targets where code = :code');
             $sth->bindParam(':code', $code, PDO::PARAM_STR);
             $sth->execute();
