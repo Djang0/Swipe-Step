@@ -26,7 +26,8 @@
   DROP TABLE IF EXISTS `hooks`;
   CREATE TABLE IF NOT EXISTS `hooks` (
     `id` int(6) NOT NULL,
-    `name` varchar(32) NOT NULL
+    `name` varchar(32) NOT NULL,
+    `owner_id` int(6) NOT NULL
   ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
   -- --------------------------------------------------------
   --
@@ -96,7 +97,8 @@
   --
   ALTER TABLE `hooks`
     ADD PRIMARY KEY (`id`),
-    ADD UNIQUE KEY `name_uniq` (`name`);
+    ADD UNIQUE KEY `name_uniq` (`name`),
+    ADD KEY `hook_fk_owner` (`owner_id`);
 
   --
   -- Index pour la table `hook_calls`
@@ -161,8 +163,6 @@
 
     INSERT INTO `owners` ( `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
     ('BP_generic', '863bab09542012a045aa112b31c4261d', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
-    INSERT INTO `owners` ( `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
-    ('SendInBlue_hook_caller', '4c5a1503fdba1ddd308846aaa13aa7c8', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
   /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
   /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
   /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

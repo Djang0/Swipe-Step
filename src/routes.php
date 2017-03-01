@@ -75,6 +75,36 @@ $app->get('/getHooks/{name}/{id}', function ($request, $response, $args) {
     }
 
 });
+// Authentication required. Returns all hooks.
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
+$app->get('/getHooks/', function ($request, $response, $args) {
+    $id = $response->getHeaderLine('X-Owner');
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    try {
+        $db = $this->db;
+        $sth = $db->prepare('SELECT *  FROM hooks where hooks.owner_id = :owner_id');
+        $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
+        $sth->execute();
+        $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
+        $data['result'] = array(
+          'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+          'hooks_count' => count($hooks),
+          'hooks' => $hooks,
+      );
+        $response = $response->withStatus(200);
+        $body->write(json_encode($data));
+        $db = null;
+    } catch (PDOException $e) {
+        $response->withStatus(503);
+        $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+    }
+});
 // Authentication required. Returns all target specifications owned by the authenticated user.
 // Method : GET
 // (200) => Ok
@@ -89,7 +119,7 @@ $app->get('/getCodes/', function ($request, $response, $args) {
         $id = $response->getHeaderLine('X-Owner');
         // $db = getDB();
         $db = $this->db;
-        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets,owners WHERE targets.owner_id = owners.id AND owners.id = :owner_id');
+        $sth = $db->prepare('SELECT targets.id, targets.stamp_created, targets.url, targets.code  FROM targets WHERE targets.owner_id = :owner_id');
         $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
 
         $sth->execute();
@@ -211,17 +241,18 @@ $app->get('/addHook/{string_to_encode}', function ($request, $response, $args) {
     $id = $response->getHeaderLine('X-Owner');
     $code = strtolower($args['string_to_encode']);
     if (strlen($code) > 0) {
-      $md5 = md5($code);
+      $md5 = md5($code.$id);
         try {
             // $db = getDB();
             $db = $this->db;
-            $sth = $db->prepare('select * from hooks where name= :md5');
+            $sth = $db->prepare('SELECT * from hooks where hooks.name = :md5 and hooks.owner_id = :owner_id');
             $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
             $sth->execute();
             $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
             if (count($hooks) == 0) {
-                $sth = $db->prepare('INSERT INTO hooks (name) VALUES (:md5)');
+                $sth = $db->prepare('INSERT INTO hooks (name, owner_id) VALUES (:md5 :owner_id)');
                 $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
+                $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
                 $sth->execute();
                 $response->withStatus(200);
                 $body->write('{"Success":{"msg":"Created hook","hook_name":"'.$md5.'"}}');
