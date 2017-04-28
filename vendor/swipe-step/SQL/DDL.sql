@@ -161,8 +161,7 @@
     -- Contenu de la table `owners`
     --
 
-    INSERT INTO `owners` ( `name`, `api_key`, `stamp_last_push`, `stamp_last_get`) VALUES
-    ('BP_generic', '863bab09542012a045aa112b31c4261d', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+
   /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
   /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
   /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
