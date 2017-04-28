@@ -57,12 +57,20 @@ cd /var/www/swipe-step/vendor/Swipe-Step/SQL
 mysql -u web_user -ppassword db_name < DDL.sql
 ```
 Then insert at least one record into "owners" table to give admin access through api.
-### Now run composer to ensure everything is up-to-date:
+### Ensure everything is up-to-date:
 ```bash
 cd /var/www/Swipe-Step
 sudo composer update
 ```
-### Test the config : http://click.domain.com/dump/
+### Setup database connection
+```bash
+cd /var/www/Swipe-Step/src/
+sudo mv local.settings.php.sample local.settings.php
+# edit local.settings.php to configure database connection
+sudo vim local.settings.php
+```
+### Test 
+Going to http://click.domain.com/dump/
 Should return approximatively this :
 
 ```json
