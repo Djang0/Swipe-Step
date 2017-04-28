@@ -389,8 +389,7 @@ $app->get('/to/{code}', function ($request, $response, $args) {
                 $sth->bindParam(':ip', $ipAddress, PDO::PARAM_STR);
                 $sth->bindParam(':ref', $referrer, PDO::PARAM_STR);
                 $sth->execute();
-                $response = $response->withStatus(301);
-                header('Location: '.$target->url.'?referrer='.urlencode($referrer), true, 301);
+                return $response->withStatus(301)->withHeader('Location', $target->url.'?referrer='.urlencode($referrer));
             } else {
                 $response = $response->withStatus(404);
 
