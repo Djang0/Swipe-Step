@@ -251,7 +251,7 @@ $app->get('/addHook/{string_to_encode}', function ($request, $response, $args) {
             $sth->execute();
             $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
             if (count($hooks) == 0) {
-                $sth = $db->prepare('INSERT INTO hooks (name, owner_id) VALUES (:md5 :owner_id)');
+                $sth = $db->prepare('INSERT INTO hooks (name, owner_id) VALUES (:md5 , :owner_id)');
                 $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
                 $sth->bindParam(':owner_id', $id, PDO::PARAM_INT);
                 $sth->execute();
