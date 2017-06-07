@@ -221,3 +221,13 @@ Method : POST
  (200) Ok !
  'Content-type'='application / json'
 ```
+
+> /getHooksByTimeStamp/{name}/{timestamp}
+
+```
+Authentication required. Returns all hooks data having a timestamp > {timestamp} param.
+Method : GET
+(200) => Ok
+(503) => PDOException
+'Content-type'='application/json'
+```

@@ -25,6 +25,58 @@ $app->get('/dump/', function ($request, $response, $args) {
     $response = $response->withStatus(200);
     $body->write(json_encode($data));
 });
+
+// Authentication required. Returns all hooks data having a timestamp > {timestamp} param.
+// Method : GET
+// (200) => Ok
+// (503) => PDOException
+// 'Content-type'='application/json'
+$app->get('/getHooksByTimeStamp/{name}/{timestamp}', function ($request, $response, $args) {
+    $response = $response->withHeader('Content-type', 'application/json');
+    $body = $response->getBody();
+    $data = array();
+    $date = date_create();
+    $ref_id = intval($args['timestamp']);
+    $hook_name = $args['name'];
+    if(strlen($hook_name)==32){
+      try {
+        $db = $this->db;
+        $sth = $db->prepare('select * from hooks where name= :name');
+        $sth->bindParam(':name', $hook_name, PDO::PARAM_STR);
+        $sth->execute();
+        $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
+        if (count($hooks) == 1) {
+            $hook_id=$hooks[0]['id'];
+            $sth = $db->prepare('SELECT hook_calls.call_details as post_data, UNIX_TIMESTAMP(hook_calls.stamp) as time_stamp FROM hook_calls WHERE UNIX_TIMESTAMP(hook_calls.stamp) > :ref_id and hook_id = :hook_id');
+            $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
+            $sth->bindParam(':hook_id', $hook_id, PDO::PARAM_INT);
+            $sth->execute();
+            $calls = $sth->fetchAll(PDO::FETCH_ASSOC);
+            $data['result'] = array(
+              'timestamp' => date_format($date, 'd-m-Y H:i:s'),
+              'hook_call_count' => count($calls),
+              'hook_calls' => $calls,
+          );
+            $response = $response->withStatus(200);
+            $body->write(json_encode($data));
+        } else {
+          $response->withStatus(422);
+          $body->write('{"Failure":{"msg":"Hook does not exists."}}');
+        }
+
+        $db = null;
+
+      } catch (PDOException $e) {
+          $response->withStatus(503);
+          $body->write('{"error":{"msg":'.$e->getMessage().'}}');
+      }
+    }else{
+      $response->withStatus(400);
+      $body->write('{"Failure":{"msg":"Not a hook name."}}');
+    }
+
+});
+
 // Authentication required. Returns all hooks data having an id > {id} param.
 // Method : GET
 // (200) => Ok
@@ -46,7 +98,7 @@ $app->get('/getHooks/{name}/{id}', function ($request, $response, $args) {
         $hooks = $sth->fetchAll(PDO::FETCH_ASSOC);
         if (count($hooks) == 1) {
             $hook_id=$hooks[0]['id'];
-            $sth = $db->prepare('SELECT hook_calls.call_details  FROM hook_calls WHERE hook_calls.id > :ref_id and hook_id = :hook_id');
+            $sth = $db->prepare('SELECT hook_calls.call_details as post_data, UNIX_TIMESTAMP(hook_calls.stamp) as time_stamp  FROM hook_calls WHERE hook_calls.id > :ref_id and hook_id = :hook_id');
             $sth->bindParam(':ref_id', $ref_id, PDO::PARAM_INT);
             $sth->bindParam(':hook_id', $hook_id, PDO::PARAM_INT);
             $sth->execute();
