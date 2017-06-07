@@ -89,6 +89,15 @@ Should return approximatively this :
     "HTTP_COOKIE": ["PHPSESSID=vaaqao71eprftcifangmucnd73"]
 }
 ```
+### Troubleshooting
+#### Rebase from repository
+```bash
+sudo git fetch --all
+sudo git reset --hard origin/master
+sudo composer update
+sudo service apache2 restart
+```
+
 
 ### API
 
