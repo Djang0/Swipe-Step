@@ -330,17 +330,18 @@ $app->get('/addHook/{string_to_encode}', function ($request, $response, $args) {
 // Authentication required. Adds a target owned by the authenticated user.
 // Method : GET
 // Parameter 1 : targets.code (String != '' and not null max 32 char)
-// Parameter 2 : targets.url (String != '' and not null must be urlencoded max 2083 char)
+// Header Parameter : X-TARGET-URL (String != '' and not null must be urlencoded max 2083 char)
 // (200) => Ok
 // (503) => PDOException
 // (400) => Failure. code AND / OR url is not properly formated. | Code already exists
 // 'Content-type'='application/json'
-$app->get('/addTarget/{code}/{url}', function ($request, $response, $args) {
+$app->get('/addTarget/{code}/', function ($request, $response, $args) {
+    $url = $request->getHeaderLine('X-TARGET-URL');
     $response = $response->withHeader('Content-type', 'application/json');
     $body = $response->getBody();
     $id = $response->getHeaderLine('X-Owner');
     $code = strtolower($args['code']);
-    $url = $args['url'];
+    //$url = $args['url'];
     if (strlen($code) <= 32 and strlen($code) > 0 and strlen($url) <= 2083 and strlen($url) > 0) {
         try {
             // $db = getDB();

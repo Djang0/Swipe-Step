@@ -182,13 +182,13 @@ Parameter 1 : string_to_encode (String != '')
 'Content-type'='application/json'
 ```
 
-> /addTarget/{code}/{url}
+> /addTarget/{code}/
 
 ```
 Authentication required. Adds a target owned by the authenticated user.
 Method : GET
 Parameter 1 : targets.code (String != '' and not null max 32 char)
-Parameter 2 : targets.url (String != '' and not null must be urlencoded max 2083 char)
+Header Parameter : X-TARGET-URL (String != '' and not null must be urlencoded max 2083 char)
 (200) => Ok
 (503) => PDOException
 (400) => Failure. code AND / OR url is not properly formated. | Code already exists
